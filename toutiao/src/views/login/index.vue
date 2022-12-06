@@ -20,6 +20,10 @@
       </van-field>
       <div class="login-btn-wrap">
         <van-button class="login-btn" block type="info" native-type="submit"
+        :loading='btndl'
+        loading-type="spinner"
+        loading-text="登陆中..."
+        :disabled='btndl'
           >登录</van-button
         >
       </div>
@@ -28,10 +32,11 @@
   <!-- /登陆表单 -->
 </template>
 <script>
-import Vue from 'vue'
 import { loginAPI } from '@/api/user'
-import { Notify } from 'vant'
-// 全局注册
+import Vue from 'vue'
+import Notify from '@/ui/Notify'
+import { setToken } from '@/utils/token.js'
+import { setStorage } from '@/utils/storage'
 Vue.use(Notify)
 export default {
   name: 'LoginIndex',
@@ -39,8 +44,9 @@ export default {
     return {
       user: {
         mobile: '', // 手机号
-        code: '' // 验证码(密码必须是246810后台规定死的)
-      }
+        code: '246810' // 验证码(密码必须是246810后台规定死的)
+      },
+      btndl: false
     }
   },
   methods: {
@@ -49,14 +55,24 @@ export default {
       const user = this.user
       // 2. 表单验证
       // 3. 提交表单请求登录
+      this.btndl = true
       try {
         const res = await loginAPI(user)
-        console.log(res)
         Notify({ type: 'success', message: '登录成功' })
+        setToken(res.data.data.token)
+        setStorage('refresh_token', res.data.data.refresh_token)
+        // 跳转一定要放在最后=》尽量最后执行
+        // location.href -> 当前浏览器地址和要跳转的地址一样(不包含#后面的锚点信息)->不会刷新网页
+        // 地址改变 就会导致网页刷新
+        // this.$router.push()压栈 会产生历史记录，this.$router.replace() 替换(不会产生历史记录)
+        this.$router.replace({
+          path: '/layout/home'
+        })
       } catch (err) {
-        Notify({ type: 'danger', message: '手机号或验证码错误' })
       // 4. 根据请求响应结果处理后续
+        Notify({ type: 'danger', message: '手机号或验证码错误' })
       }
+      this.btndl = false
     }
   }
 }
