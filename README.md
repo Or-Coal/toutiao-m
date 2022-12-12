@@ -23,3 +23,5 @@ vue-cli(vue 项目脚手架)。
 #### 2. 在node环境下只需要
 > node server.js 
 #### 以上两步一个精美的头条就运行起来啦
+
+作品展示：http://43.143.172.198/heimatoutiao
